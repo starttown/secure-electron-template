@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Build and release Electron app
-        uses: starttown/action-electron-builder@v1
+        uses: samuelmeuli/action-electron-builder@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # 仅当是 tag 推送 或 手动触发时才发布
