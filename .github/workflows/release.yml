@@ -1,21 +1,28 @@
-name: Build Windows App
+name: Build and Release Windows App
 
 on:
-  # 手动触发（推荐）
+  # 方式 1：手动触发（推荐用于测试或紧急发布）
   workflow_dispatch:
-  # 或 push 到 main 时自动构建
-  # push:
-  #   branches: [main]
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v0.1.0'
+
+  # 方式 2：自动触发（当推送以 "v" 开头的 tag 时，如 v1.2.3）
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-windows:
-    runs-on: windows-latest  # 👈 只用 Windows runner
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -24,16 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build production assets
-        run: npm run prod-build
-
-      - name: Build Windows installer
-        run: npx electron-builder --windows --publish never
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Build and release Electron app
+        uses: samuelmeuli/action-electron-builder@v1
         with:
-          name: secure-electron-windows
-          path: |
-            dist/*.exe
-            dist/*.zip
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 仅当是 tag 推送 或 手动触发时才发布
+          release: true
